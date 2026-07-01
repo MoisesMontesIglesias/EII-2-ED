@@ -1,0 +1,232 @@
+package p1Algoritmia;
+
+public class Algorithms {
+	private static final long SLEEP_TIME = 1;
+
+	public static void doNothing() {
+		try {
+			Thread.sleep(SLEEP_TIME);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Completad con los metodos que se os pidan...
+	public long factorial (int n) { // Calcula el factorial de n>=0 de forma recursiva 
+		if (n<0) 
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		if(n!=0) {
+			return n * factorial(n-1); //Si es el caso general
+		}
+		return 1; //Si es el caso base
+	} 
+	public int fibonacci (int n) { // Calcula el termino n-esimo teniendo en cuenta que el primer término se considera fib(0)=0; y fib(1)=1 
+		if (n<0) {
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		}
+		//Casos base
+		if(n == 0) {
+			return 0;
+		} else if(n == 1) {
+			return 1; 
+		}
+		return fibonacci(n-2) + fibonacci(n-1); //Si es el caso general
+
+	} 
+	// para pruebas de que produce una excepción... 
+	//   assertThrows(IllegalArgumentException.class, () -> {al.factorial(-1);}); 
+
+	public long pow2Rec1(int n) {  // calcula 2 elevado a n de forma recursiva 2^n = 2*2^(n-1) 
+		if (n<0) {
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		}
+		if(n == 0) {
+			return 1;
+		}
+		if(n != 1) {
+			return 2*pow2Rec1(n-1);
+		} else {
+			return 2;
+		}
+	} 
+	
+	public long potenciaRec(int n, int m) { // Calcula a elevado a b de forma recursiva por potencias sucesivas
+		if (n <= 0 || m < 0) {
+			throw new IllegalArgumentException("No permitido alguno de los parámetros introducido"); 
+		}
+		if(m == 0) {
+			return 1;
+		}
+		if(m != 1) {
+			return n*potenciaRec(n, m-1);
+		} else {
+			return n;
+		}
+	} 
+	
+	public long restoDivRec(int n, int m) { // calcula el resto de la división a/b de forma recursiva 
+		if (n < 0 || m <= 0) {
+			throw new IllegalArgumentException("No permitido alguno de los parámetros introducido"); 
+		}
+		if(n >= m) {
+			return restoDivRec(n-m, m);
+		}
+		return n;
+	}
+	
+	public long divEntRec(int n, int m) { //calcula la división entera a/b de forma recursiva 
+		if (n < 0 || m <= 0) {
+			throw new IllegalArgumentException("No permitidos parámetros negativos"); 
+		}
+		return divEntRec2(n, m, 0);
+	}
+	
+	private int divEntRec2(int n, int m, int contador) {
+		if(n >= m) {
+			return divEntRec2(n-m, m, contador+1);
+		}
+		return contador;
+	}
+
+	public long invertirEnteroRec(int n) { // Invierte un entero invertirEnteroRec(1234)=4321 de forma recursiva 
+		if (n<0) {
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		}
+		return invertirEnteroRec2(n, 0);
+	}
+
+	private long invertirEnteroRec2(int n, int nuevo) {
+		if(n <= 0) {
+			return nuevo;
+		} 
+		int x = n/10;
+		int y = n%10;
+		String z = String.valueOf(nuevo);
+		return invertirEnteroRec2(x,Integer.parseInt(z+y));
+	}
+
+	public String invertirStringRec(String n) { // Invierte un string de forma recursiva invertirStringRec("abc")="cba"
+		if (n == null) {
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		}
+		return invertirStringRec2(n, "");
+	}
+	
+	private String invertirStringRec2(String n, String nuevo) {
+		if(n.length() <= 0 || n.isBlank() || n.isEmpty()) {
+			return nuevo;
+		}
+		String x = nuevo+n.substring(n.length()-1);
+		String y = n.substring(0,n.length()-1);
+		return invertirStringRec2(y,x);
+	}
+
+	public boolean esSimetricaRec(int[][] m) {  // Indica si es simétrica una matriz cuadrada de forma recursiva 
+		if(m == null) {
+			throw new IllegalArgumentException("No permitidos parámetros nulos"); 
+		}
+		return esSimetricaRec2(m, 0, 0);
+	}
+
+	private boolean esSimetricaRec2(int[][] m, int i, int j) {
+		if(j == m[0].length) {
+			return true;
+		}
+		if(m[i][j] == m[j][i]) {
+			i+=1;
+			if(i == m.length) {
+				return esSimetricaRec2(m, 0, j+1);
+			}
+			return esSimetricaRec2(m,i, j);
+		}
+		return false;
+	}
+	
+	public void linear (int n) { // Algoritmo con una complejidad temporal lineal 
+		if (n<0) 
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		for (int i = 0; i < n; i++) {
+			doNothing();
+		}
+	} 
+	
+	public void cuadratic(int n) {
+		if (n<0) 
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				doNothing();
+			}
+		}
+	}
+	
+	public void cubic(int n) {
+		if (n<0) 
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				for (int k = 0; k < n; k++) {
+					doNothing();
+				}
+			}
+		}
+	}
+	
+	public void logarithmic(int n) { // Algoritmo con una complejidad temporal logarítmica en cualquier base
+		if (n<0)
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n);
+		
+	}
+
+	
+	public long pow2Iter(int n) {
+		if (n<0) {
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n); 
+		}
+		int valor = 2;
+		while(n > 0) {
+			doNothing();
+			valor*=2;
+			n-=1;
+		}
+		return valor;
+	}
+	
+	public long pow2Rec2 (int n) { // calcula 2 elevado a n de forma recursiva 2^n = 2^(n-1)+2^(n-1)
+		if (n<0)
+			throw new IllegalArgumentException("No permitidos parámetros negativos como "+ n);
+		return pow2Rec2Rec(n, 2);
+	}
+
+	private long pow2Rec2Rec(int n, int i) {
+		if(n == 0) {
+			return 1;
+		}
+		doNothing();
+		return pow2Rec2Rec(n-1, i) + pow2Rec2Rec(n-1, i);
+	}
+}
+
+
+@Test
+	void testPow2Rec2() {
+		assertEquals(32, alg.pow2Rec2(5));
+		assertEquals(128, alg.pow2Rec2(7));
+		assertEquals(512, alg.pow2Rec2(9));
+		assertEquals(2048, alg.pow2Rec2(11));
+		assertThrows(IllegalArgumentException.class, () -> {alg.pow2Rec2(-1);}); 
+	}
+	
+/**
+	 * Test para el calculo del tiempo de ejecucion del algoritmo implementado en el metodo "miPrueba" de la clase "Algorithms"
+	 */
+	@Test
+	void testLinearBenchmark() {
+		AlgorithmsBenchmark ab = new AlgorithmsBenchmark();
+		//ab.testFinal("lineal.txt", 0, 1000, 5, "p1Algoritmia.Algorithms", "miPrueba");
+		//ab.testFinal("testLineal.txt", 0, 50, 5, "p1Algoritmia.Algorithms", "linear");
+		//ab.testFinal("testCuadratic.txt", 0, 20, 5, "p1Algoritmia.Algorithms", "cuadratic");
+		//ab.testFinal("testCubic.txt", 0, 10, 5, "p1Algoritmia.Algorithms", "cubic");
+		//ab.testFinal("testPow2Iter.txt", 0, 50, 0, "p1Algoritmia.Algorithms", "pow2Iter");
+		ab.testFinal("testPow2Rec2.txt", 0, 10, 5, "p1Algoritmia.Algorithms", "pow2Rec2");
+	}

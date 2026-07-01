@@ -1,0 +1,11 @@
+Métodos:
+public double excentricidad(T element): Devuelve la excentricidad del nodo que se le pasa por parámetro. 
+Si el nodo es null lanza NullPointerException. Si el nodo no existe devuelve -1.
+
+public int centroGrafo(): Devuelve la posición del nodo que es centro de un grafo
+
+public double shortestPathLength(T origen, T destino): Devuelve la longitud del camino más corto
+entre el nodo origen y destino. Si alguno de los nodos no existe o es null, devuelve -1;
+
+public boolean containsCycles(): Devuelve true si el grafo contiene ciclos, 
+false en caso contrario.
