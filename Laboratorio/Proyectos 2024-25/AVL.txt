@@ -1,0 +1,260 @@
+package P3.AVL;
+
+public class AVLNode <T extends Comparable<T>>{
+	private T info;
+	private AVLNode<T> left;
+	private AVLNode<T> right;
+	private int bf;
+	private int altura;
+	public AVLNode(T node) {
+		this.info = node;
+		this.left = null;
+		this.right = null;
+		this.bf = 0;
+		this.altura = 0;
+	}
+	public T getInfo() {
+		return info;
+	}
+	public void setInfo(T info) {
+		this.info = info;
+	}
+	public AVLNode<T> getLeft() {
+		return left;
+	}
+	public void setLeft(AVLNode<T> left) {
+		this.left = left;
+	}
+	public AVLNode<T> getRight() {
+		return right;
+	}
+	public void setRight(AVLNode<T> right) {
+		this.right = right;
+	}
+	public int getBf() {
+		return bf;
+	}
+	public void setBf(int bf) {
+		this.bf = bf;
+	}
+	public int getAltura() {
+		return altura;
+	}
+	public void setAltura(int altura) {
+		this.altura = altura;
+	}
+	
+	public void updateBFHeight() {
+		int HD = 0;
+		int HI = 0;
+		if(getRight() != null) {
+			HD = getRight().getAltura() + 1;
+		}
+		if(getLeft() != null) {
+			HI = getLeft().getAltura() + 1;
+		}
+		setBf(HD - HI);
+		setAltura(Math.max(HD, HI));
+	}
+}
+
+package P3.AVL;
+
+import javax.naming.directory.SearchControls;
+
+public class AVLTree <T extends Comparable<T>>{
+	private AVLNode<T> raiz;
+
+	public AVLTree(AVLNode<T> raiz) {
+		this.raiz = raiz;
+	}
+	
+	public AVLNode<T> getRaiz() {
+		return raiz;
+	}
+
+	public void setRaiz(AVLNode<T> raiz) {
+		this.raiz = raiz;
+	}
+	
+	public boolean addNode(T node) {
+		if(node == null) {
+			throw new NullPointerException();
+		}
+		if(searchNode(node) != null) {
+			return false;
+		}
+		if(getRaiz() == null) {
+			setRaiz(new AVLNode<T>(node));
+		} else {
+			addNodeR(getRaiz(), node);
+		}
+		return true;
+	}
+
+	private AVLNode<T> addNodeR(AVLNode<T> actual, T node) {
+		if(actual.getInfo().compareTo(node) < 0) {
+			if(actual.getLeft() != null) {
+				actual.setLeft(addNodeR(actual.getLeft(), node));
+			} else {
+				actual.setLeft(new AVLNode<T>(node));
+			}
+		} else {
+			if(actual.getRight() != null) {
+				actual.setRight(addNodeR(actual.getRight(), node));
+			} else {
+				actual.setRight(new AVLNode<T> (node));
+			}
+		}
+		return updateBFHeightBalanceo(actual);
+	}
+
+	private AVLNode<T> updateBFHeightBalanceo(AVLNode<T> nodo) {
+		nodo.updateBFHeight();
+		if(nodo.getBf() == 2) {
+			if(nodo.getRight().getBf() >= 0) {
+				nodo = singleRightRotation(nodo);
+			} else {
+				nodo = doubleRightRotation(nodo);
+			}
+		} else if(nodo.getBf() == -2) {
+			if(nodo.getRight().getBf() <= 0) {
+				nodo = singleLeftRotation(nodo);
+			} else {
+				nodo = doubleLeftRotation(nodo);
+			}
+		}
+		return nodo;
+	}
+
+	private AVLNode<T> doubleLeftRotation(AVLNode<T> nodo) {
+		nodo.setLeft(singleRightRotation(nodo.getLeft()));
+		return singleLeftRotation(nodo);
+	}
+
+	private AVLNode<T> singleLeftRotation(AVLNode<T> nodo) {
+		AVLNode<T> aux = nodo.getLeft();
+		nodo.setLeft(aux.getRight());
+		nodo.updateBFHeight();
+		aux.setRight(nodo);
+		nodo.updateBFHeight();
+		return nodo;
+	}
+
+	private AVLNode<T> doubleRightRotation(AVLNode<T> nodo) {
+		nodo.setRight(singleLeftRotation(nodo.getRight()));
+		return singleRightRotation(nodo);
+	}
+
+	private AVLNode<T> singleRightRotation(AVLNode<T> nodo) {
+		AVLNode<T> aux = nodo.getLeft();
+		nodo.setLeft(aux.getRight());
+		nodo.updateBFHeight();
+		aux.setRight(nodo);
+		nodo.updateBFHeight();
+		return nodo;
+	}
+
+	private AVLNode<T> searchNode(T node) {
+		if(node == null|| getRaiz() == null) {
+			return null;
+		}
+		return recursiveSearchNode(node, getRaiz());
+	}
+
+	private AVLNode<T> recursiveSearchNode(T node, AVLNode<T> actual) {
+		if(node == null || actual == null) {
+			return null;
+		} else if(actual.getInfo().equals(node)) {
+			return actual;
+		} else if(actual.getInfo().compareTo(node) > 0) {
+			return recursiveSearchNode(node, actual.getLeft());
+		} else {
+			return recursiveSearchNode(node, actual.getRight());
+		}
+	}
+	
+	public boolean removeNode(T nodo) {
+		if(nodo == null) {
+			throw new NullPointerException();
+		}
+		if(getRaiz() == null) {
+			return false;
+		}
+		if(searchNode(nodo) != null) {
+			setRaiz(removeNodeR(getRaiz(), nodo));
+			return true;
+		}
+		return false;
+	}
+
+	private AVLNode<T> removeNodeR(AVLNode<T> actual, T nodo) {
+		if(actual.getInfo().compareTo(nodo) == 0) {
+			if(actual.getLeft() == null && actual.getRight() == null) {
+				return null;
+			} else if(actual.getLeft() == null || actual.getRight() == null) {
+				if(actual.getLeft() == null) {
+					return actual.getRight();
+				}else {
+					return actual.getLeft();
+				}
+			} else {
+				actual.setInfo(getMaximo(actual.getLeft()));
+				actual.setLeft(removeNodeR(actual.getLeft(), actual.getInfo()));
+			}
+		} else if(actual.getInfo().compareTo(nodo) < 0) {
+			actual.setRight(removeNodeR(actual.getLeft(), nodo));
+		} else {
+			actual.setLeft(removeNodeR(actual.getRight(), nodo));
+		}
+		return updateBFHeightBalanceo(actual);
+	}
+
+	private T getMaximo(AVLNode<T> actual) {
+		if(actual.getRight() == null) {
+			return actual.getInfo();
+		}
+		return getMaximo(actual.getRight());
+	}
+	
+	public String preOrder() {
+		String path = "";
+		return recursivePreOrder(getRaiz(), path);
+	}
+
+	private String recursivePreOrder(AVLNode<T> actual, String path) {
+		if(actual == null) {
+			return "";
+		}
+		path = actual.toString() + "\t" + recursivePreOrder(actual.getLeft(), path) + 
+				recursivePreOrder(actual.getRight(), path);
+		return path;
+	}
+	
+	private String postOrder() {
+		String path = "";
+		return recursivePostOrder(getRaiz(), path);
+	}
+	
+	private String recursivePostOrder(AVLNode<T> actual, String path) {
+		if(actual == null) {
+			return "";
+		}
+		path = recursivePostOrder(actual.getLeft(), path) + recursivePostOrder(actual.getRight(), path) + actual.toString();
+		return path;
+	}
+
+	private String inOrder() {
+		String path = "";
+		return recursiveInOrder(getRaiz(), path);
+	}
+
+	private String recursiveInOrder(AVLNode<T> actual, String path) {
+		if(actual == null) {
+			return "";
+		}
+		path = recursiveInOrder(actual.getLeft(), path) + actual.toString() + recursiveInOrder(actual.getRight(), path);
+		return path;
+	}
+	
+}

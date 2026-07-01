@@ -1,0 +1,212 @@
+package P3.Arboles;
+
+public class BSTNode <T extends Comparable<T>> {
+	private T info;
+	private BSTNode<T> left;
+	private BSTNode<T> right;
+	
+	public BSTNode(T node) {
+		this.info = node;
+		this.left = null;
+		this.right = null;
+	}
+
+	@Override
+	public String toString() {
+		return info.toString();
+	}
+
+	public T getInfo() {
+		return info;
+	}
+
+	public void setInfo(T info) {
+		this.info = info;
+	}
+
+	public BSTNode<T> getLeft() {
+		return left;
+	}
+
+	public void setLeft(BSTNode<T> left) {
+		this.left = left;
+	}
+
+	public BSTNode<T> getRight() {
+		return right;
+	}
+
+	public void setRight(BSTNode<T> right) {
+		this.right = right;
+	}
+}
+
+package P3.Arboles;
+
+import P3.Arboles.BSTNode;
+
+public class BSTTree<T extends Comparable<T>> {
+	private BSTNode<T> raiz;
+
+	public BSTTree(BSTNode<T> raiz) {
+		this.raiz = raiz;
+	}
+
+	public BSTNode<T> getRaiz() {
+		return raiz;
+	}
+
+	public void setRaiz(BSTNode<T> raiz) {
+		this.raiz = raiz;
+	}
+	
+	public boolean addNode(T node) {
+		if(node == null || node.equals(null)) {
+			throw new NullPointerException();
+		}
+		if(searchNode(node) != null) {
+			return false;
+		}
+		if(raiz == null) {
+			raiz = new BSTNode<T>(node);
+		} else {
+			addNodeR(raiz, node);
+		}
+		return true;
+	}
+
+	private void addNodeR(BSTNode<T> actual, T node) {
+		if(node.compareTo(actual.getInfo()) < 0) {
+			if(actual.getLeft() == null) {
+				setRaiz(new BSTNode<T>(node));
+			} else {
+				addNodeR(actual.getLeft(), node);
+			}
+		} else if(node.compareTo(actual.getInfo()) > 0) {
+			if(actual.getRight() == null) {
+				setRaiz(new BSTNode<T>(node));
+			} else {
+				addNodeR(actual.getRight(), node);
+			}
+		}
+	}
+
+	private BSTNode<T> searchNode(T node) {
+		if(node == null || getRaiz() == null) {
+			return null;
+		}
+		return recursiveSearch(node, getRaiz());
+	}
+
+	private BSTNode<T> recursiveSearch(T node, BSTNode<T> actual) {
+		if(node == null || actual == null) {
+			return null;
+		} else if(actual.getInfo().equals(node)) {
+			return actual;
+		} else if(actual.getInfo().compareTo(node) > 0) {
+			return recursiveSearch(node, actual.getLeft());
+		} else {
+			return recursiveSearch(node, actual.getRight());
+		}
+	}
+	
+	public boolean removeNode(T node) {
+		if(node == null) {
+			throw new NullPointerException();
+		}
+		if(getRaiz() == null) {
+			return false;
+		}
+		setRaiz(removeNodeR(getRaiz(), node));
+		return true;
+	}
+
+	private BSTNode<T> removeNodeR(BSTNode<T> actual, T node) {
+		if(actual.getInfo().compareTo(node) > 0) {
+			return removeNodeR(actual.getLeft(), node);
+		} else if(actual.getInfo().compareTo(node) < 0) {
+			return removeNodeR(actual.getRight(), node);
+		} else {
+			if(actual.getLeft() == null) {
+				return actual.getRight();
+			}else if(actual.getRight() == null) {
+				return actual.getLeft();
+			}
+			actual.setInfo(getMaximo(actual.getLeft()));
+			actual.setLeft(removeNodeR(actual.getLeft(), actual.getInfo()));
+		}
+		return actual;
+	}
+
+	private T getMaximo(BSTNode<T> actual) {
+		if(actual.getRight() == null) {
+			return actual.getInfo();
+		}
+		return getMaximo(actual.getRight());
+	}
+	
+	public String preOrder() {
+		String path = "";
+		return recursivePreOrder(getRaiz(), path);
+	}
+	
+	private String recursivePreOrder(BSTNode<T> actual, String path) {
+		if(actual == null) {
+			return null;
+		}
+		path = actual.toString() + "\t" + recursivePreOrder(actual.getLeft(), path) + recursivePreOrder(actual.getRight(), path);
+		return path;
+	}
+	
+	public String postOrder() {
+		String path = "";
+		return recursivePostOrder(getRaiz(), path);
+	}
+
+	private String recursivePostOrder(BSTNode<T> actual, String path) {
+		if(actual == null) {
+			return null;
+		}
+		path = recursivePostOrder(actual.getLeft(), path) + recursivePostOrder(actual.getRight(), path) + "\t" + actual.toString();
+		return path;
+	}
+	
+	public String inOrder() {
+		String path = "";
+		return recursiveInOrder(getRaiz(), path);
+	}
+
+	private String recursiveInOrder(BSTNode<T> actual, String path) {
+		if(actual == null) {
+			return null;
+		}
+		path = recursiveInOrder(actual.getLeft(), path) + actual.toString() + "\t" + recursiveInOrder(actual.getRight(), path);
+		return path;
+	}
+	
+	public String toString() {
+		return tumbarArbol(getRaiz(), 0);
+	}
+	
+	/**
+	* Genera un String con el arbol "tumbado" (la raiz a la izquierda y las ramas hacia la derecha)
+	* Es un recorrido InOrden-Derecha-Izquierda, tabulando para mostrar los distintos niveles
+	* Utiliza el toString de la informacion almacenada
+	*
+	* @param p La raiz del arbol a mostrar tumbado
+	* @param esp El espaciado en numero de tabulaciones para indicar la profundidad
+	* @return El String generado
+	*/
+	protected String tumbarArbol(BSTNode<T> p, int esp) {
+	StringBuilder cadena = new StringBuilder();
+	
+		if (p != null) {
+			cadena.append(tumbarArbol(p.getRight(), esp + 1));
+			for (int i = 0; i < esp; i++)
+				cadena.append("\t");
+			cadena.append(p + "\n");
+			cadena.append(tumbarArbol(p.getLeft(), esp + 1));
+		}
+		return cadena.toString();
+	}
+}

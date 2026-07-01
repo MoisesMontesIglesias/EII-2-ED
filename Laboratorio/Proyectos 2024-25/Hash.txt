@@ -1,0 +1,235 @@
+package P4.Hash;
+
+public class HashNode<T> {
+	private T info;
+	private int status;
+	public static final int BORRADO = -1;
+	public static final int LLENO = 1;
+	public static final int VACIO = 0;
+	public HashNode() {
+		this.info = null;
+		this.status = VACIO;
+	}
+	public T getInfo() {
+		return info;
+	}
+	public void setInfo(T info) {
+		this.info = info;
+		this.status = LLENO;
+	}
+	public int getStatus() {
+		return status;
+	}
+	public void remove() {
+		status = BORRADO;
+	}
+	
+	public String toString() {
+		StringBuilder cadena=new StringBuilder("{");
+		switch (getStatus()){
+		case LLENO:
+			cadena.append(info);
+			break;
+		case VACIO:
+			cadena.append("_E_");
+			break;
+		case BORRADO:
+			cadena.append("_D_");
+		}
+		cadena.append("}");
+		return cadena.toString();
+	}
+}
+
+package P4.Hash;
+
+public class ClosedHashTableRedispersion<T> extends AbstractHash<T> {
+	protected HashNode<T> tabla[];
+	
+	protected int hashSize;
+	protected int numElems;
+	
+	public static final int LINEAL = 0;
+	public static final int CUADRATICA = 1;
+	public static final int DOBLEHASH = 2;
+	
+	protected int exploracion;
+	
+	private double minlf;
+	private double maxlf;
+	
+	private static final double MINIMUN_LF = 0.16;
+	private static final double MAXIMUN_LF = 0.5;
+
+	public ClosedHashTableRedispersion(int tam, int exp) {
+		hashSize = nextPrimeNumber(tam);
+		tabla = (HashNode<T>[])new HashNode[hashSize];
+		this.numElems = 0;
+		if(exp == Double.POSITIVE_INFINITY) {
+			exploracion = LINEAL;
+		} else {
+			exploracion = exp;
+		}
+		for (int i = 0; i < hashSize; i++) {
+			tabla[i] = new HashNode<T>();
+		}
+	}
+
+	public ClosedHashTableRedispersion(int tam, int exp, double fcUP,double fcDOWN) {
+		this(tam,exp);
+		this.exploracion = exp;
+		setMaxlf(fcUP);
+		setMinlf(fcDOWN);
+	}
+
+	private void setMinlf(double fcDOWN) {
+		if(minlf < 0 || minlf > 1) {
+			minlf = MINIMUN_LF;
+		}
+		this.minlf = minlf;
+	}
+
+	private void setMaxlf(double fcUP) {
+		if(maxlf < 0 || maxlf > 1) {
+			maxlf = MAXIMUN_LF;
+		}
+		this.maxlf = maxlf;
+	}
+
+	@Override
+	public int getNumOfElems() {
+		return numElems;
+	}
+
+	@Override
+	public int getSize() {
+		return tabla.length;
+	}
+
+	@Override
+	public boolean add(T elem) {
+		if(elem == null) {
+			throw new NullPointerException();
+		}
+		if(numElems == tabla.length) {
+			return false;
+		}
+		int intentos = 0;
+		int posicion = funcionDeDispersion(elem, intentos);
+		while(tabla[posicion].getStatus() == HashNode.LLENO) {
+			posicion = funcionDeDispersion(elem, intentos++);
+		}
+		tabla[posicion].setInfo(elem);
+		numElems++;
+		reDispersion();
+		return true;
+	}
+
+	private int funcionDeDispersion(T elem, int intentos) {
+		int clave = fHash(elem);
+		if(exploracion == LINEAL) {
+			return (clave + intentos) % getSize();
+		} else if(exploracion == CUADRATICA) {
+			return (clave + intentos * intentos) % getSize();
+		} else {
+			return (clave + intentos * funcionSalto(elem)) % getSize();
+		}
+	}
+
+	private int funcionSalto(T elem) {
+		return previousPrimeNumber(getSize()) - fHash(elem) % previousPrimeNumber(getSize());
+	}
+
+	@Override
+	public T find(T elem) {
+		if(elem == null) {
+			return null;
+		}
+		int intentos = 0;
+		int posicion = fHash(elem);
+		while(tabla[posicion].getStatus() == HashNode.BORRADO || (tabla[posicion].getStatus() == HashNode.LLENO && !(tabla[posicion].getInfo().equals(elem)))){
+			if(intentos == tabla.length || tabla[posicion].getStatus() == HashNode.VACIO) {
+				return null;
+			}
+			posicion = funcionDeDispersion(elem, intentos++);
+		}
+		return elem;
+	}
+
+	@Override
+	public boolean remove(T elem) {
+		if(elem == null) {
+			throw new NullPointerException();
+		} 
+		if(find(elem) == null || numElems == 0) {
+			return false;
+		}
+		int intentos = 0;
+		int posicion = fHash(elem);
+		while(tabla[posicion].getStatus() != HashNode.VACIO) {
+			if(tabla[posicion].getStatus() == HashNode.LLENO && tabla[posicion].getInfo().equals(elem)) {
+				tabla[posicion].remove();
+				numElems--;
+				inverseReDispersion();
+				return true;
+			}
+			posicion = funcionDeDispersion(elem, intentos++);
+		}
+		return false;
+	}
+	
+	private double getLF() {
+		return (double) getNumOfElems() / (double) hashSize;
+	}
+
+
+	@Override
+	protected boolean reDispersion() {
+		if(getLF() > maxlf) {
+			HashNode<T>[] arrayBase = tabla;
+			int tamAnterior = getSize();
+			int tamNuevo = getSize() * 2;
+			hashSize = nextPrimeNumber(tamNuevo);
+			tabla = new HashNode[hashSize];
+			for (int i = 0; i < hashSize; i++) {
+				tabla[i] = new HashNode<T>();
+			}
+			numElems = 0;
+			for (int i = 0; i < tamAnterior; i++) {
+				if(arrayBase[i].getStatus() == HashNode.LLENO) {
+					add(arrayBase[i].getInfo());
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	protected boolean inverseReDispersion() {
+		if(getLF() < minlf) {
+			HashNode<T>[] arrayBase = tabla;
+			int tamAnterior = getSize();
+			int tamNuevo = getSize() / 2;
+			hashSize = nextPrimeNumber(tamNuevo);
+			tabla = new HashNode[hashSize];
+			for (int i = 0; i < hashSize; i++) {
+				tabla[i] = new HashNode<T>();
+			}
+			numElems = 0;
+			for (int i = 0; i < tamAnterior; i++) {
+				if(arrayBase[i].getStatus() == HashNode.LLENO) {
+					add(arrayBase[i].getInfo());
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+}

@@ -1,0 +1,285 @@
+package P2.grafos;
+
+
+
+public class Grafos<T> {
+	private T[] nodes;
+	private double[][] weights;
+	private boolean[][] edges;
+	private int size;
+	
+	private double[][] a;
+	private int[][] p;
+	
+	
+	public Grafos(int dimension) {
+		this.nodes =  (T[]) new Object[dimension];
+		this.weights = new double[dimension][dimension];
+		this.edges = new boolean[dimension][dimension];
+		this.size = 0;
+	}
+	
+	public int getNode(T node) {
+		if(node == null) {
+			return -1;
+		}
+		for (int i = 0; i < nodes.length; i++) {
+			if(nodes[i].equals(node)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public boolean addNode(T node) {
+		if(existsNode(node)) {
+			return false;
+		} else if(size > nodes.length){
+			return false;
+		} else {
+			nodes[size] = node;
+			for (int i = 0; i < nodes.length; i++) {
+				weights[i][size] = 0;
+				weights[size][i] = 0;
+				edges[i][size] = false;
+				edges[size][i] = false;
+			}
+			size++;
+			return true;
+		}
+	}
+
+	public boolean existsNode(T node) {
+		if(node == null) {
+			throw new NullPointerException();
+		}
+		if(getNode(node) != -1) {
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean removeNode(T node) {
+		if(existsNode(node)) {
+			return false;
+		}
+		for (int i = 0; i < nodes.length; i++) {
+			if(nodes[i].equals(node)) {
+				weights[i][i] = weights[size-1][size-1];
+				weights[i][size-1] = weights[size-1][i];
+				edges [i][i] = edges[size-1][size-1];
+				edges[size-1][i] = edges[i][size-1];
+				nodes[size-1] = null;
+				size--;
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean addEdge(T source, T target, double weight) {
+		if(existsNode(source) && existsNode(target)) {
+			if(existsEdge(source,target)) {
+				weights[getNode(source)][getNode(target)] = weight;
+				return true;
+			}
+		} else if(existsNode(source)) {
+			throw new ElementNotPresentException(source);
+		} else if(existsNode(target)) {
+			throw new ElementNotPresentException(target);
+		} else if(weight <= 0) {
+			throw new IllegalArgumentException();
+		}
+		return false;
+	}
+	
+	public boolean existsEdge(T source, T target) {
+		if(weights[getNode(source)][getNode(target)] != 0) {
+			return true;
+		}
+		return false;
+	}
+	
+	public double getEdge(T source, T target) {
+		if(existsNode(source)){
+			throw new ElementNotPresentException(source);
+		}
+		if(existsNode(target)) {
+			throw new ElementNotPresentException(target);
+		}
+		if(!existsEdge(source, target)) {
+			return -1;
+		}
+		return weights[getNode(source)][getNode(target)];
+	}
+	
+	public boolean removeEdge(T source, T target) {
+		if(existsNode(source) && existsNode(target)) {
+			if(getEdge(source,target) != 0) {
+				weights[getNode(source)][getNode(target)] = 0;
+				return true;
+			}
+		}
+		if(existsNode(source)) {
+			throw new ElementNotPresentException(source);
+		}
+		if(existsNode(target)) {
+			throw new ElementNotPresentException(target);
+		}
+		return false;
+	}
+
+	public int getSize() {
+		return size;
+	}
+	
+	public DijkstraDataClass dijkstra(T source) {
+		DijkstraDataClass dj = new DijkstraDataClass(getSize(), 0);
+		if(source == null || getNode(source) == -1) {
+			return null;
+		}
+		int nodePosition = getNode(source);
+		double[] vectorD = new double [getSize()];
+		boolean[] nodosAlcanzados = new boolean[getSize()];
+		int[] vectorP = new int[getSize()];
+		for (int i = 0; i < getSize(); i++) {
+			vectorP[i] = -1;
+			if(i == nodePosition) {
+				vectorD[i] = 0;
+			} else if(edges[nodePosition][i]) {
+				vectorD[i] = weights[nodePosition][i];
+			} else {
+				vectorD[i] = Double.POSITIVE_INFINITY;
+			}
+		}
+		dj.setdDijkstra(vectorD);
+		dj.setpDijkstra(vectorP);
+		nodosAlcanzados[nodePosition] = true;
+		int w = getPivote(vectorD, nodosAlcanzados);
+		while(w != -1) {
+			nodosAlcanzados[w] = true;
+			for (int i = 0; i < getSize(); i++) {
+				if(edges[w][i] && !nodosAlcanzados[i] && vectorD[w] + weights[w][i] < vectorD[i]) {
+					vectorD[i] = vectorD[w] + weights[w][i];
+					vectorP[i] = w;
+				}
+			}
+			w = getPivote(vectorD, nodosAlcanzados);
+		}
+		return dj;
+	}
+
+	public int getPivote(double[] vectorD, boolean[] nodosAlcanzados) {
+		int pivote = -1;
+		double menor = Double.POSITIVE_INFINITY;
+		for (int i = 0; i < getSize(); i++) {
+			if(vectorD[i] < menor && nodosAlcanzados[i] == false) {
+				pivote = i;
+				menor = vectorD[i];
+			}
+		}
+		if(pivote == -1) {
+			return pivote;
+		}
+		nodosAlcanzados[pivote] = true;
+		return pivote;
+	}
+	
+	public boolean floyd() {
+		a = new double [getSize()][getSize()];
+		p = new int[getSize()][getSize()];
+		for (int i = 0; i < getSize(); i++) {
+			for (int j = 0; j < getSize(); j++) {
+				p[i][j] = -1;
+				if(i == j) {
+					p[i][j] = 0;
+				} else if(existsEdge(nodes[i], nodes[j])){
+					a[i][j] = weights[i][j];
+				} else {
+					a[i][j] = Double.POSITIVE_INFINITY;
+				}
+			}
+		}
+		for (int pivote = 0; pivote < getSize(); pivote++) {
+			for (int o = 0; o < getSize(); o++) {
+				for (int d = 0; d < getSize(); d++) {
+					if(a[o][pivote] + a[pivote][d] < a[o][d]) {
+						a[o][d] = a[o][pivote] + a [pivote][d];
+						p[o][d] = pivote;
+					}
+				}
+			}
+		}
+		if(getSize() != 0) {
+			return true;
+		}
+		return false;
+	}
+
+	public double[][] getAFloyd() {
+		return a;
+	}
+
+	public int[][] getPFloyd() {
+		return p;
+	}	
+	
+	public String recorridoProfundidad(T nodo) {
+		String path = "";
+		if(!existsNode(nodo)) {
+			return path;
+		}
+		boolean[] visited = new boolean[getSize()];
+		visited[getNode(nodo)] = true;
+		path = nodo.toString() + "\t";
+		for (int i = 0; i < visited.length; i++) {
+			if(!visited[i] && edges[getNode(nodo)][i]) {
+				path += recursiveRP(i,visited);
+			}
+		}
+		return path;
+	}
+
+	private String recursiveRP(int i, boolean[] visited) {
+		visited[i] = true;
+		String path = nodes[i].toString() + "\t";
+		for (int j = 0; j < visited.length; j++) {
+			if(!visited[j] && edges[i][j]) {
+				path += recursiveRP(j, visited);
+			}
+		}
+		return path;
+	}
+	
+	public String path(T origen, T destino) {
+		if(!existsNode(destino) || !existsNode(origen)) {
+			return "";
+		}
+		if(origen.equals(destino)) {
+			return origen.toString() + "\t";
+		} if(getAFloyd()[getNode(origen)][getNode(destino)] == Double.POSITIVE_INFINITY) {
+			return origen.toString() + "\t" + Double.POSITIVE_INFINITY + "\t" + destino.toString();
+		}
+		return origen.toString() + recursivePath(origen,destino) + destino.toString();
+	}
+
+	private String recursivePath(T origen, T destino) {
+		int pivote = p[getNode(origen)][getNode(destino)];
+		if(pivote != -1) {
+			return recursivePath(origen, nodes[pivote]) + nodes[pivote].toString() + recursivePath(nodes[pivote], destino);
+		} else {
+			return "\t" + minCostPath(origen,destino) + "\t";
+		}
+	}
+
+	private double minCostPath(T origen, T destino) {
+		if(!existsNode(origen)) {
+			throw new ElementNotPresentException(origen);
+		}
+		if(!existsNode(destino)) {
+			throw new ElementNotPresentException(destino);
+		}
+		floyd();
+		return a[getNode(origen)][getNode(destino)];
+	}
+}
