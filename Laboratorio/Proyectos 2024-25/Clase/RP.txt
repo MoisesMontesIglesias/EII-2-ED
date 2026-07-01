@@ -1,0 +1,27 @@
+	public String recorridoProfundidad(T nodo) {
+		String path = "";
+		if (!existsNode(nodo)) {
+			return path;
+		}
+		boolean[] v = new boolean[getSize()];
+    	v[getNode(nodo)] = true;
+    	path = nodo.toString() + "\t";
+    	
+    	for (int i = 0; i < v.length; i++) {
+    		if (!v[i] && edges[getNode(nodo)][i]) {
+    			path = path + recursiveRP(i, v); 
+    		}
+    	}
+    	return path; 
+	}
+	
+	private String recursiveRP(int i, boolean[] v) {
+    	v[i] = true;
+    	String path =  nodes[i].toString() + "\t";
+    	for (int j=0; j<v.length;j++) {
+    		if (!v[j] && edges[i][j]) {
+    			path = path + recursiveRP(j, v);
+    		}
+    	}
+		return path;
+	}

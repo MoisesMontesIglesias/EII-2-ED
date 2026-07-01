@@ -1,0 +1,8 @@
+public DijkstraDataClass dijkstra(T source) --> Metodo que implementa el 
+						algoritmo de Dijkstra desde un nodo origen
+- Devuelve una DijkstraDataClass con los vectores D y P correspondientes 
+	si se aplica o null si no se puede aplicar
+DijkstraDataClass --> Clase con el vector D (costes) y vector P(Path)
+Pruebas unitarias
+
+Crear un vector de booleanos que nos da la informacion para saber si hemos pasado por un nodo o no
